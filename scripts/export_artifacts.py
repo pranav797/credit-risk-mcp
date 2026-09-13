@@ -18,15 +18,17 @@ After this, the MCP server has no dependency on the 362 MB CSV or the old projec
 from __future__ import annotations
 
 import argparse
+import os
 import json
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-DEFAULT_SOURCE = Path(
-    r"C:\Users\prana\Documents\Development\Antigravity\home-credit-default"
-)
+# Path to the source home-credit-default project (the notebooks/model live there).
+# Override with the HOME_CREDIT_DIR env var or the --source flag; the default
+# assumes it sits next to this repo.
+DEFAULT_SOURCE = Path(os.environ.get("HOME_CREDIT_DIR", "../home-credit-default"))
 ARTIFACTS = Path(__file__).resolve().parent.parent / "artifacts"
 FIXTURES = Path(__file__).resolve().parent.parent / "tests" / "fixtures"
 SHAP_SAMPLE = 2000  # rows sampled for global SHAP importance (kept small = fast)
