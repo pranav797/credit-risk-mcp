@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
+
+# uv
+.uv/
+
+# Keep artifacts/ committed (small, portable model + JSON) so the server runs
+# out of the box. The 362 MB source CSV lives in the original project, not here.
