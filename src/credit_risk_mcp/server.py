@@ -1,14 +1,9 @@
-"""The MCP server: exposes the Phase 1 model functions as callable tools.
+"""The MCP server: exposes the model functions as callable tools.
 
->>> SCAFFOLD (Phase 2) — fill in the tool bodies and docstrings.
->>> See PHASE2_GUIDE.md for the concepts, how to run it, and how to test with
->>> MCP Inspector.
-
-Big picture: `model_service` already does the real work. This file is a thin
-adapter that registers each of those functions as an MCP *tool* so a Claude
-client can call them. The @mcp.tool() decorator turns a function's name, type
-hints, and DOCSTRING into the schema Claude reads — so the docstring is the
-tool's user manual, not just a comment. Write it for Claude.
+`model_service` does the real work. This file is a thin adapter that registers
+each function as an MCP tool so a Claude client can call it. The @mcp.tool()
+decorator turns a function's name, type hints, and docstring into the schema
+Claude reads — so each tool's docstring is its user manual, written for Claude.
 """
 
 from __future__ import annotations
@@ -27,11 +22,9 @@ from .schemas import BorrowerProfile
 mcp = FastMCP("credit-risk")
 
 
-# NOTE on argument style: each tool below takes a `BorrowerProfile` (or a list
-# of them). FastMCP reads that pydantic model — the same one you built in
-# Phase 1 — to generate the input schema, so you get all your field
-# descriptions and validation for free. (Alternative: list every field as a
-# separate parameter. Reusing the model is DRY and less error-prone.)
+# Each tool takes a `BorrowerProfile` (or a list of them). FastMCP reads that
+# pydantic model to generate the input schema, so field descriptions and
+# validation come for free.
 
 
 @mcp.tool()

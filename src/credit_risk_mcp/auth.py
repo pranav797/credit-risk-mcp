@@ -1,17 +1,13 @@
-"""API-key authentication for the HTTP transport (Phase 4).
+"""API-key authentication for the HTTP transport.
 
->>> SCAFFOLD — implement dispatch(). tests/test_auth.py drives you.
-
-Why this file only appears now: with stdio (Phases 2-3) the client launches the
-server as a local subprocess, so trust is implicit — no auth needed. Over HTTP
-the server is reachable by anyone who has the URL, so every request must prove it
-holds a shared secret, sent in the standard header:
+Over stdio the client launches the server as a local subprocess, so trust is
+implicit. Over HTTP the server is reachable by anyone who has the URL, so every
+request must prove it holds a shared secret, sent in the standard header:
 
     Authorization: Bearer <key>
 
-This is the simplest real auth and is enough to learn the concept. Production
-systems usually use OAuth — the MCP spec defines an OAuth flow and the SDK has a
-TokenVerifier hook where it slots in (see PHASE4_GUIDE.md).
+This is the simplest real auth. Production systems usually use OAuth — the MCP
+spec defines an OAuth flow and the SDK has a TokenVerifier hook where it slots in.
 """
 
 from __future__ import annotations
@@ -32,18 +28,8 @@ PUBLIC_PATHS = {"/health"}
 class BearerAuthMiddleware(BaseHTTPMiddleware):
     """Reject requests lacking a valid 'Authorization: Bearer <key>' header.
 
-    TODO — implement dispatch below. Steps:
-      1. If request.url.path is in PUBLIC_PATHS, let it through:
-         `return await call_next(request)`.
-      2. expected = os.environ.get(API_KEY_ENV). If it's missing/empty the server
-         is misconfigured — return JSONResponse(status_code=500) and do NOT serve
-         tools. (Fail closed: never fall back to "no auth".)
-      3. header = request.headers.get("Authorization", ""). It must start with
-         BEARER_PREFIX, and the part after it must equal `expected`. Compare with
-         hmac.compare_digest(a, b) — constant-time, avoids timing attacks — not ==.
-      4. On mismatch: return JSONResponse({"error": "unauthorized"},
-         status_code=401)  (optionally headers={"WWW-Authenticate": "Bearer"}).
-      5. On success: `return await call_next(request)`.
+    Health-check paths pass through; the API key is read from the environment
+    (fail closed with 500 if it's not configured) and compared in constant time.
     """
 
     async def dispatch(self, request: Request, call_next):

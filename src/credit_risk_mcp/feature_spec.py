@@ -1,9 +1,5 @@
 """How a human-friendly borrower description maps onto the model's 235 columns.
 
->>> SCAFFOLD — fill this in. See PHASE1_GUIDE.md ("The facts you need") for the
->>> exact encodings, one-hot groups, and formulas. Reference solution in
->>> ../reference/feature_spec.py if you get stuck.
-
 This module is the single source of truth for the preprocessing that
 02_feature_engineering.ipynb did inline. Everything here must mirror that
 notebook exactly, or predictions won't match what the model was trained on.
@@ -13,15 +9,13 @@ from __future__ import annotations
 
 from typing import Callable
 
-DAYS_PER_YEAR = 365.25  # given — used to convert the model's "days" columns to years
+DAYS_PER_YEAR = 365.25  # converts the model's "days" columns to years
 
 
 # --- 1. Binary label-encoded columns: friendly value -> encoded number -------
-# TODO: fill in from notebook 02's .map({...}) calls. One example is shown.
 # Keys are model COLUMN names; values map the human string to the trained number.
 BINARY_ENCODINGS: dict[str, dict[str, int]] = {
-    "CODE_GENDER": {"M": 1, "F": 0},  # <-- worked example; add the other 3 columns
-    # TODO: FLAG_OWN_CAR, FLAG_OWN_REALTY, NAME_CONTRACT_TYPE
+    "CODE_GENDER": {"M": 1, "F": 0},
     "FLAG_OWN_CAR": {"Y": 1, "N": 0},
     "FLAG_OWN_REALTY": {"Y": 1, "N": 0},
     "NAME_CONTRACT_TYPE": {"Cash loans": 1, "Revolving loans": 0},
@@ -30,7 +24,7 @@ BINARY_ENCODINGS: dict[str, dict[str, int]] = {
 
 # --- 2. One-hot groups: friendly category -> retained column suffix ----------
 # The reference category (dropped by drop_first) maps to None = "leave every
-# dummy in this group at 0". TODO: complete all four groups (see the guide).
+# dummy in this group at 0".
 ONEHOT_GROUPS: dict[str, dict[str, str | None]] = {
     "NAME_INCOME_TYPE": {
         "Businessman": None,  # reference level (dropped by drop_first)
@@ -70,7 +64,7 @@ ONEHOT_GROUPS: dict[str, dict[str, str | None]] = {
 
 # --- 3. Engineered features: derived column -> (raw inputs, formula) ----------
 # Recompute a derived feature only when one of its inputs was supplied by the
-# user (see model_service). TODO: complete the map (see the guide's formula list).
+# user (see model_service).
 DerivedFn = Callable[[dict[str, float]], float]
 DERIVED_FEATURES: dict[str, tuple[tuple[str, ...], DerivedFn]] = {
     "AGE_YEARS": (("DAYS_BIRTH",), lambda r: abs(r["DAYS_BIRTH"]) / DAYS_PER_YEAR),
@@ -100,10 +94,8 @@ DERIVED_FEATURES: dict[str, tuple[tuple[str, ...], DerivedFn]] = {
     ),
 }
 
-# --- 4. Human-readable names for model columns (used in SHAP explanations) ----
-# TODO: add the columns you want to read nicely in explanations (EXT_SOURCE_*,
-# AMT_CREDIT, AGE_YEARS, the ratios, ...). Anything missing falls back to the
-# raw column name via friendly_name() below.
+# --- 4. Human-readable names for model columns (used in SHAP explanations).
+# Anything missing falls back to the raw column name via friendly_name() below.
 FRIENDLY_NAMES: dict[str, str] = {
     "EXT_SOURCE_1": "external bureau credit score #1",
     "EXT_SOURCE_2": "external bureau credit score #2",

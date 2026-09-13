@@ -1,8 +1,8 @@
-"""Phase 2 tests: the MCP tools are registered and wired to model_service.
+"""Tests for the MCP tool layer: tools are registered and wired to model_service.
 
 These call the decorated tool functions directly (FastMCP's @mcp.tool() returns
 the original function) and also inspect what a client would actually see via
-mcp.list_tools(). Make them green by filling in server.py.
+mcp.list_tools().
 """
 
 from __future__ import annotations
