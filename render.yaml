@@ -1,0 +1,14 @@
+# Render Blueprint — deploys the remote (HTTP) credit-risk MCP server.
+# In the Render dashboard: New → Blueprint → pick this repo. Render reads this
+# file, builds the Dockerfile, and wires everything below automatically.
+services:
+  - type: web
+    name: credit-risk-mcp
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health          # public route the middleware lets through
+    envVars:
+      - key: CREDIT_RISK_API_KEY
+        generateValue: true            # Render generates a strong secret for you
+      # HOST defaults to 0.0.0.0 in the Dockerfile; Render injects $PORT itself.
