@@ -12,14 +12,31 @@ import os
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from starlette.responses import JSONResponse
 
 from . import model_service
 from .auth import BearerAuthMiddleware
 from .schemas import BorrowerProfile
 
+# Behind a hosting platform the public Host header (e.g. *.onrender.com) is not
+# localhost, which FastMCP's DNS-rebinding protection blocks by default. Our own
+# bearer-key auth is the access control, so the host check is relaxed unless
+# MCP_ALLOWED_HOSTS (comma-separated) is set to lock it to specific hosts.
+_allowed_hosts = [h for h in os.environ.get("MCP_ALLOWED_HOSTS", "").split(",") if h]
+if _allowed_hosts:
+    _transport_security = TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=_allowed_hosts,
+        allowed_origins=_allowed_hosts,
+    )
+else:
+    _transport_security = TransportSecuritySettings(
+        enable_dns_rebinding_protection=False
+    )
+
 # The server instance. The name is how the tool set shows up in a client.
-mcp = FastMCP("credit-risk")
+mcp = FastMCP("credit-risk", transport_security=_transport_security)
 
 
 # Each tool takes a `BorrowerProfile` (or a list of them). FastMCP reads that
