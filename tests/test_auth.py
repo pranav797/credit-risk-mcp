@@ -1,8 +1,7 @@
-"""Phase 4 tests: the HTTP transport is gated by the bearer-key middleware.
+"""Tests for the HTTP transport's bearer-key auth middleware.
 
 We build the ASGI app and drive it with Starlette's TestClient (no real network
-needed). Make these green by implementing BearerAuthMiddleware.dispatch in
-src/credit_risk_mcp/auth.py.
+needed).
 
 Note: the MCP session manager can only be started once per process, so we build
 the app ONCE (module-scoped) and share it. The auth middleware reads the key

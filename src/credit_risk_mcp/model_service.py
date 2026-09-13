@@ -1,12 +1,8 @@
 """Load the trained model once and turn a BorrowerProfile into predictions.
 
->>> SCAFFOLD — this is the heart of Phase 1. Fill it in. Reference solution in
->>> ../reference/model_service.py. Let tests/test_feature_vector.py and
->>> tests/test_predictions.py drive you.
-
-The hard function is build_feature_vector: user gives ~10 fields, model needs
-235, so start from training-median defaults and overlay the supplied fields
-using the notebook's exact encodings (which live in feature_spec.py).
+The core function is build_feature_vector: a user gives ~10 fields but the model
+needs 235, so we start from training-median defaults and overlay the supplied
+fields using the notebook's exact encodings (which live in feature_spec.py).
 """
 
 from __future__ import annotations
@@ -30,11 +26,8 @@ ARTIFACTS = Path(__file__).resolve().parent.parent.parent / "artifacts"
 DEFAULT_THRESHOLD = 0.15
 
 # --- Profile field -> raw model column, split by how the value is written ----
-# TODO: complete these three routing tables. They say which BorrowerProfile
-# attribute writes which model column(s). Reference has the full lists.
 _DIRECT_COLUMNS: dict[str, str] = {
-    "annual_income": "AMT_INCOME_TOTAL",  # example
-    # TODO: credit_amount, annuity, num_children, ext_source_1/2/3
+    "annual_income": "AMT_INCOME_TOTAL",
     "credit_amount": "AMT_CREDIT",
     "annuity": "AMT_ANNUITY",
     "num_children": "CNT_CHILDREN",
@@ -43,14 +36,11 @@ _DIRECT_COLUMNS: dict[str, str] = {
     "ext_source_3": "EXT_SOURCE_3",
 }
 _BINARY_FIELDS: dict[str, str] = {
-    # TODO: gender->CODE_GENDER, owns_car->FLAG_OWN_CAR, owns_realty->FLAG_OWN_REALTY
     "gender": "CODE_GENDER",
     "owns_car": "FLAG_OWN_CAR",
     "owns_realty": "FLAG_OWN_REALTY",
 }
 _ONEHOT_FIELDS: dict[str, str] = {
-    # TODO: income_type->NAME_INCOME_TYPE, education->NAME_EDUCATION_TYPE,
-    #       family_status->NAME_FAMILY_STATUS, housing_type->NAME_HOUSING_TYPE
     "income_type": "NAME_INCOME_TYPE",
     "education": "NAME_EDUCATION_TYPE",
     "family_status": "NAME_FAMILY_STATUS",
@@ -61,13 +51,9 @@ _ONEHOT_FIELDS: dict[str, str] = {
 class _Artifacts:
     """Lazily-loaded model + supporting JSON, kept as a process-wide singleton.
 
-    TODO in __init__:
-      - load feature_columns.json  -> self.feature_columns (canonical order)
-      - load feature_defaults.json -> self.defaults (per-column medians)
-      - self.model = xgb.XGBClassifier(); self.model.load_model(ARTIFACTS/"model.json")
-      - SANITY CHECK: model.get_booster().feature_names must equal
-        self.feature_columns, else raise (this catches the classic silent
-        column-order bug). Keep self._explainer = None for lazy SHAP.
+    Loads the canonical feature order and per-column medians, loads the model,
+    and asserts the model's own feature names match feature_columns (catching the
+    classic silent column-order bug). The SHAP explainer is created lazily.
     """
 
     def __init__(self) -> None:
@@ -75,7 +61,7 @@ class _Artifacts:
             (ARTIFACTS / "feature_columns.json").read_text()
         )
 
-        self.defaults: list[str, float] = json.loads(
+        self.defaults: dict[str, float] = json.loads(
             (ARTIFACTS / "feature_defaults.json").read_text()
         )
 
@@ -92,7 +78,6 @@ class _Artifacts:
 
     @property
     def explainer(self) -> Any:
-        # TODO: lazily create shap.TreeExplainer(self.model) and cache it.
         if self._explainer is None:
             import shap
 
@@ -111,20 +96,6 @@ def build_feature_vector(profile: BorrowerProfile) -> tuple[pd.DataFrame, list[s
 
     Returns (one-row DataFrame in exact model column order, list of profile
     fields that fell back to defaults).
-
-    Suggested steps:
-      1. row = dict(defaults); track a set() of raw columns you overwrite and a
-         set() of profile fields the user actually provided.
-      2. Direct numeric fields (_DIRECT_COLUMNS): if value is not None, write it.
-      3. Binary fields (_BINARY_FIELDS): map the value via fs.BINARY_ENCODINGS.
-      4. age -> DAYS_BIRTH = -age*DAYS_PER_YEAR; years_employed -> DAYS_EMPLOYED
-         = -years*DAYS_PER_YEAR.
-      5. One-hot (_ONEHOT_FIELDS): zero every column in the group, then set the
-         chosen suffix to 1 (reference category stays all-zero).
-      6. Recompute each fs.DERIVED_FEATURES entry ONLY if one of its raw inputs
-         was overwritten (so untouched defaults keep their true medians).
-      7. Build a 1-row DataFrame and REINDEX to feature_columns order.
-      8. Compute `defaulted` = the optional fields the user did NOT provide.
     """
     art = _artifacts()
     row: dict[str, float] = dict(art.defaults)
@@ -189,8 +160,7 @@ def build_feature_vector(profile: BorrowerProfile) -> tuple[pd.DataFrame, list[s
     return frame, defaulted
 
 def _risk_tier(prob: float) -> str:
-    """TODO: bucket a probability into low / moderate / elevated / high.
-    Suggestion: <0.08 low, <0.15 moderate, <0.30 elevated, else high."""
+    """Bucket a default probability into low / moderate / elevated / high."""
     if prob < 0.08:
         return "low"
     if prob < DEFAULT_THRESHOLD:
@@ -201,12 +171,7 @@ def _risk_tier(prob: float) -> str:
 
 
 def score(profile: BorrowerProfile) -> dict[str, Any]:
-    """Predict default probability + risk tier + decision flag.
-
-    TODO: build the vector, prob = model.predict_proba(frame)[0, 1], then return
-    default_probability, risk_tier, flag_default (prob >= threshold),
-    threshold_used, fields_defaulted.
-    """
+    """Predict default probability + risk tier + decision flag."""
     art = _artifacts()
     frame, defaulted = build_feature_vector(profile)
     prob = float(art.model.predict_proba(frame)[0, 1])
@@ -220,12 +185,7 @@ def score(profile: BorrowerProfile) -> dict[str, Any]:
 
 
 def explain(profile: BorrowerProfile, top_n: int = 8) -> dict[str, Any]:
-    """SHAP breakdown of one prediction: the biggest push/pull factors.
-
-    TODO: build the vector, get shap values for the single row, sort features by
-    |contribution|, take top_n, and return each as {feature, friendly_name,
-    value, shap_contribution, direction}.
-    """
+    """SHAP breakdown of one prediction: the biggest push/pull factors."""
     art = _artifacts()
     frame, defaulted = build_feature_vector(profile)
     prob = float(art.model.predict_proba(frame)[0, 1])
@@ -257,12 +217,7 @@ def explain(profile: BorrowerProfile, top_n: int = 8) -> dict[str, Any]:
 
 
 def model_info() -> dict[str, Any]:
-    """Static description of the model, performance, and limitations.
-
-    TODO: return a dict with model_type, n_features, auc_roc (0.7476),
-    performance at 0.50 vs 0.15, recommended_threshold, and an honest
-    'limitations' string (educational Kaggle project, not real lending advice).
-    """
+    """Static description of the model, performance, and limitations."""
     return {
         "model_type": "XGBoost classifier (XGBClassifier, 100 trees, max_depth=5)",
         "n_features": len(_artifacts().feature_columns),
@@ -285,10 +240,7 @@ def model_info() -> dict[str, Any]:
 
 
 def global_importance(top_n: int = 10) -> dict[str, Any]:
-    """Top features by mean |SHAP|, precomputed into global_importance.json.
-
-    TODO: read the json, take top_n, attach fs.friendly_name to each.
-    """
+    """Top features by mean |SHAP|, precomputed into global_importance.json."""
     ranking = json.loads((ARTIFACTS / "global_importance.json").read_text())
     top = ranking[:top_n]
     for item in top:
