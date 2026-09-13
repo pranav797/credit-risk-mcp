@@ -1,0 +1,102 @@
+[
+  {
+    "feature": "EXT_SOURCE_3",
+    "mean_abs_shap": 0.38602516055107117
+  },
+  {
+    "feature": "EXT_SOURCE_2",
+    "mean_abs_shap": 0.3074752390384674
+  },
+  {
+    "feature": "NAME_INCOME_TYPE_Working",
+    "mean_abs_shap": 0.30421245098114014
+  },
+  {
+    "feature": "CODE_GENDER",
+    "mean_abs_shap": 0.19883815944194794
+  },
+  {
+    "feature": "NAME_FAMILY_STATUS_Married",
+    "mean_abs_shap": 0.15953119099140167
+  },
+  {
+    "feature": "FLAG_OWN_CAR",
+    "mean_abs_shap": 0.14940114319324493
+  },
+  {
+    "feature": "REG_CITY_NOT_WORK_CITY",
+    "mean_abs_shap": 0.1352243721485138
+  },
+  {
+    "feature": "NAME_EDUCATION_TYPE_Secondary / secondary special",
+    "mean_abs_shap": 0.1173272430896759
+  },
+  {
+    "feature": "FLAG_PHONE",
+    "mean_abs_shap": 0.1150144636631012
+  },
+  {
+    "feature": "FLAG_DOCUMENT_3",
+    "mean_abs_shap": 0.10888605564832687
+  },
+  {
+    "feature": "EXT_SOURCE_1",
+    "mean_abs_shap": 0.10457978397607803
+  },
+  {
+    "feature": "YEARS_EMPLOYED",
+    "mean_abs_shap": 0.0863284170627594
+  },
+  {
+    "feature": "CREDIT_TERM",
+    "mean_abs_shap": 0.0860007256269455
+  },
+  {
+    "feature": "FLAG_OWN_REALTY",
+    "mean_abs_shap": 0.08583945780992508
+  },
+  {
+    "feature": "AMT_GOODS_PRICE",
+    "mean_abs_shap": 0.08278176188468933
+  },
+  {
+    "feature": "AMT_REQ_CREDIT_BUREAU_YEAR",
+    "mean_abs_shap": 0.07974855601787567
+  },
+  {
+    "feature": "WALLSMATERIAL_MODE_Panel",
+    "mean_abs_shap": 0.07939805835485458
+  },
+  {
+    "feature": "CNT_CHILDREN",
+    "mean_abs_shap": 0.06803253293037415
+  },
+  {
+    "feature": "ORGANIZATION_TYPE_Business Entity Type 3",
+    "mean_abs_shap": 0.06422936171293259
+  },
+  {
+    "feature": "AMT_ANNUITY",
+    "mean_abs_shap": 0.06118450686335564
+  },
+  {
+    "feature": "DEF_30_CNT_SOCIAL_CIRCLE",
+    "mean_abs_shap": 0.057152677327394485
+  },
+  {
+    "feature": "FLAG_WORK_PHONE",
+    "mean_abs_shap": 0.0536336675286293
+  },
+  {
+    "feature": "CNT_FAM_MEMBERS",
+    "mean_abs_shap": 0.05008368194103241
+  },
+  {
+    "feature": "OWN_CAR_AGE",
+    "mean_abs_shap": 0.048140015453100204
+  },
+  {
+    "feature": "YEARS_ID_PUBLISH",
+    "mean_abs_shap": 0.04779735207557678
+  }
+]
