@@ -58,20 +58,8 @@ uv run --extra dev pytest -q        # 24 tests
 uv run python -m credit_risk_mcp.server   # runs over stdio (waits for a client)
 ```
 
-### Connect it to Claude Code
-
-```bash
-claude mcp add credit-risk -s user -- uv --directory /ABSOLUTE/PATH/TO/credit-risk-mcp run python -m credit_risk_mcp.server
-```
-
-Start a new session, then try: *"Score a borrower: 34, $54k income, wants a $450k
-loan, working, external credit scores around 0.15."*
-
-### Explore the tools
-
-```bash
-npx @modelcontextprotocol/inspector uv run python -m credit_risk_mcp.server
-```
+See [Connecting an MCP client](#connecting-an-mcp-client) below to wire it into
+Claude or any other MCP-capable app.
 
 ## Remote (HTTP + auth)
 
@@ -86,14 +74,79 @@ uv run credit-risk-http
 The MCP endpoint is served at `/mcp`; a public `/health` route is left open for
 platform health checks. Requests without a valid `Authorization: Bearer <key>`
 header get `401`. A `Dockerfile` and `render.yaml` are included for one-click
-deployment to Render (or any Docker host); the platform injects `$PORT` and you
-provide `CREDIT_RISK_API_KEY` as a secret.
+deployment to Render (or any Docker host): the platform injects `$PORT` and you
+provide `CREDIT_RISK_API_KEY` as a secret. `MCP_ALLOWED_HOSTS` (comma-separated)
+optionally restricts which `Host` headers are accepted; by default any host is
+allowed and the bearer key is the sole gate.
 
-Point a client at the deployed URL:
+## Connecting an MCP client
+
+The server speaks the standard MCP protocol, so any MCP-capable client can use
+it. You need the `/mcp` URL and the API key. In the examples below, replace
+`YOUR-APP` with your deployment's host and `YOUR_KEY` with its
+`CREDIT_RISK_API_KEY` (deploy your own with the `render.yaml` above to get a key
+of your own).
+
+### Claude Code (CLI)
+
+Remote server over HTTP:
 
 ```bash
-claude mcp add credit-risk-remote --transport http https://YOUR-APP.onrender.com/mcp --header "Authorization: Bearer YOUR_KEY"
+claude mcp add --transport http credit-risk https://YOUR-APP.onrender.com/mcp --header "Authorization: Bearer YOUR_KEY"
 ```
+
+…or run a local copy over stdio (no key needed):
+
+```bash
+claude mcp add credit-risk -s user -- uv --directory /ABSOLUTE/PATH/TO/credit-risk-mcp run python -m credit_risk_mcp.server
+```
+
+Then `claude mcp list` should show it connected. Start a new session and ask:
+*"Using credit-risk, score a borrower earning $60k who wants a $300k loan, and
+explain the top factors."*
+
+### Claude Desktop (and other stdio-only clients)
+
+Bridge the remote server with [`mcp-remote`](https://www.npmjs.com/package/mcp-remote).
+In Claude Desktop, open **Settings → Developer → Edit Config** and add:
+
+```json
+{
+  "mcpServers": {
+    "credit-risk": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://YOUR-APP.onrender.com/mcp",
+        "--header",
+        "Authorization: Bearer YOUR_KEY"
+      ]
+    }
+  }
+}
+```
+
+Fully restart Claude Desktop; the tools appear behind the tools/plug icon.
+
+### Any other MCP client
+
+Point it at the Streamable HTTP endpoint `https://YOUR-APP.onrender.com/mcp` and
+send `Authorization: Bearer YOUR_KEY` with each request. Clients that support
+only stdio can use the `mcp-remote` bridge shown above.
+
+### Inspect the tools directly
+
+```bash
+# remote: run the Inspector, then choose "Streamable HTTP", enter the /mcp URL,
+# and add an "Authorization: Bearer YOUR_KEY" header
+npx @modelcontextprotocol/inspector
+
+# local stdio:
+npx @modelcontextprotocol/inspector uv run python -m credit_risk_mcp.server
+```
+
+> **Note:** free hosting tiers sleep when idle, so the first request after a
+> pause can take 30–60 s to wake the server.
 
 ## About the model
 
